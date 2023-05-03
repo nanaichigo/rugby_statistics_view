@@ -116,7 +116,7 @@ async function getPlayerStatisticsData(player_id){
         })
         const data = res.data;
         if(data.status === 200){
-            return data.body.profile, data.body.cups, data.body.data;
+            return [data.body.profile, data.body.caps_types, data.body.data];
         }
         return []
       }catch(error){
