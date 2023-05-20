@@ -22,18 +22,22 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faTwitter, faFacebookF, faLine, faWordpress, faEvernote } from '@fortawesome/free-brands-svg-icons'
 import { faEnvelope } from '@fortawesome/free-regular-svg-icons'
 /* add icons to the library */
-library.add(faTwitter, faFacebookF, faLine, faWordpress, faEvernote, faEnvelope)
+library.add(faTwitter, faFacebookF, faLine, faWordpress, faEvernote, faEnvelope);
 
-const app = createApp(App)
+const app = createApp(App);
 
-registerPlugins(app)
+registerPlugins(app);
+
+import HistoryStatePlugin from 'vue-history-state';
+app.use(HistoryStatePlugin);
+
+import ScriptX from 'vue-scriptx';
+app.use(ScriptX);
+
+import Ads from 'vue-google-adsense';
+app.use(Ads.AutoAdsense, { adClient: 'ca-pub-6336239615356624', isNewAdsCode: false });
 
 app
 .component('font-awesome-icon', FontAwesomeIcon)
-.mount('#app')
+.mount('#app');
 
-import ScriptX from 'vue-scriptx'
-app.use(ScriptX)
-
-import Ads from 'vue-google-adsense'
-app.use(Ads.AutoAdsense, { adClient: 'ca-pub-6336239615356624', isNewAdsCode: false })

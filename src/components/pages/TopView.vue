@@ -8,7 +8,7 @@
 export default {
     methods:{
         rugby(){
-            this.$router.push({path:"rugby"})
+            this.$router.push({path:"rugby_player"})
         }
     }
 }

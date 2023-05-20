@@ -1,7 +1,17 @@
 <template>
   <v-app>
-    <default-bar />
-    <default-view />
+    <v-app-bar>
+      <v-app-bar-title>
+        <v-icon icon="mdi-rugby" />
+
+        JAPAN Rugby Statistics - datairoro
+
+      </v-app-bar-title>
+
+    </v-app-bar>
+    <v-main>
+      <router-view />
+    </v-main>
   </v-app>
 </template>
 

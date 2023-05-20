@@ -1,8 +1,8 @@
 <template>
     <v-main>
         <v-container>
-            <v-row>
-                <v-col>
+            <v-row align-content="center">
+                <v-col align="center">
                     <v-row>
                         <v-col cols="2">対象</v-col>
                         <v-col>
@@ -242,19 +242,18 @@ export default {
             }
         },
         getView() {
-
             if (this.custom === "official") {
-                this.$router.push({
-                    name: "ranking",
-                    query: {
+                
+                const params = {
                         official: this.custom,
                         sort: this.sort,
                         minRange: this.range[0],
                         maxRange: this.range[1]
                     }
-                })
+
+                this.$emit("get-button", params);
             } else {
-                let paramas = {
+                let params = {
                     official: this.custom,
                     sort: this.sort,
                     minRange: this.range[0],
@@ -312,13 +311,13 @@ export default {
                     }
 
                     if (leagueoneTournament === 0) {
-                        paramas.tournaments -= 1;
+                        params.tournaments -= 1;
                     } else {
-                        paramas.lot = leagueoneTournament;
+                        params.lot = leagueoneTournament;
                         if (LOdivision === 0) {
-                            paramas.lod = 7;
+                            params.lod = 7;
                         } else {
-                            paramas.lod = LOdivision;
+                            params.lod = LOdivision;
                         }
                     }
 
@@ -346,13 +345,13 @@ export default {
                     }
 
                     if (topleagueTournament === 0) {
-                        paramas.tournaments -= 2;
+                        params.tournaments -= 2;
                     } else {
-                        paramas.tlt = topleagueTournament;
+                        params.tlt = topleagueTournament;
                         if (TLdivision === 0) {
-                            paramas.tld = 3;
+                            params.tld = 3;
                         } else {
-                            paramas.tld = TLdivision;
+                            params.tld = TLdivision;
                         }
                     }
                 }
@@ -367,9 +366,9 @@ export default {
                     }
 
                     if (cupTournament === 0) {
-                        paramas.tournaments -= 4;
+                        params.tournaments -= 4;
                     } else {
-                        paramas.cupt = cupTournament;
+                        params.cupt = cupTournament;
                     }
                 }
 
@@ -384,17 +383,14 @@ export default {
                     }
 
                     if (preTournament === 0) {
-                        paramas.tournaments -= 8;
+                        params.tournaments -= 8;
                     } else {
-                        paramas.pret = preTournament;
+                        params.pret = preTournament;
                     }
                 }
-                paramas.tournaments = tournaments;
+                params.tournaments = tournaments;
 
-                this.$router.push({
-                    name: "ranking",
-                    query: paramas
-                })
+                this.$emit("get-button", params);
             }
         }
     }

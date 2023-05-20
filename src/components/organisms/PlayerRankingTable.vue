@@ -120,13 +120,11 @@ export default {
     },
     methods:{
         onRowClick(row){
-            this.$router.push({
-                    name : "player",
-                    query:{
+          const param = {
                         playerID: row.name_id,
-                        playerName:row.name
-                    }
-                })
+                        playername:row.name
+                    };
+          this.$emit("cellClick", param);
         }
     }
 }

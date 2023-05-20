@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-row align-content="center">
-      <v-col align="center">
+      <v-col>
         <share-buttons :networks="networks" :sharing="sharing"> </share-buttons>
         
         <section id="profile">
@@ -25,7 +25,7 @@
               <th> DG</th>
             </thead>
             <tbody>
-              <tr v-for="tournament in tournaments" :key="tournament.key">
+              <tr v-for="tournament in tournaments" :key="tournament.key" :bgcolor="getRowColor(tournament.div)">
                 <td>{{tournament.typename}}</td>
                 <td>{{tournament.div}}</td>
                 <td>{{tournament[RUGBY_PLAYER_COLUMN.PLAYED]}}</td>
@@ -50,7 +50,7 @@
               <th> DG</th>
             </thead>
             <tbody>
-              <tr v-for="tournament in leagues" :key="tournament.key">
+              <tr v-for="tournament in leagues" :key="tournament.key" :bgcolor="getRowColor(tournament.div)">
                 <td>{{tournament.typename}}</td>
                 <td>{{tournament.div}}</td>
                 <td>{{tournament[RUGBY_PLAYER_COLUMN.PLAYED]}}</td>
@@ -66,6 +66,7 @@
           <v-table density>
             <thead>
               <th> シーズン</th>
+              <th> リーグ</th>
               <th> 大会</th>
               <th> チーム</th>
               <th> 出場</th>
@@ -76,8 +77,9 @@
               <th> DG</th>
             </thead>
             <tbody>
-              <tr v-for="tournament in seasons" :key="tournament.key">
+              <tr v-for="tournament in seasons" :key="tournament.key" :bgcolor="getRowColor(tournament.section)">
                 <td>{{tournament.season}}</td>
+                <td>{{tournament.division}}</td>
                 <td>{{tournament.section}}</td>
                 <td>{{tournament.team}}</td>
                 <td>{{tournament[RUGBY_PLAYER_COLUMN.PLAYED]}}</td>
@@ -90,14 +92,17 @@
             </tbody>
           </v-table>
         </section>
+        <section id="games">
+          <div class="text-h5">各試合記録</div>
         <player-statistics-table :rows="rows"></player-statistics-table>
+        </section>
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script>
-import PlayerStatisticsTable from '@/components/template/PlayerStatisticsTable';
+import PlayerStatisticsTable from '@/components/organisms/PlayerStatisticsTable';
 import ShareButtons from '@/components/organisms/ShareButtons.vue'
 import DatabaseAccess from "@/js/DatabaseAccess.js";
 
@@ -108,56 +113,78 @@ export default {
     "share-buttons":ShareButtons,
     "player-statistics-table":PlayerStatisticsTable
   },
+  props:{
+    playerID:{
+      type:Number
+    },
+    playerName:{
+      type:String
+    }
+  },
   computed:{
     RUGBY_PLAYER_COLUMN(){
       return RUGBY_PLAYER_COLUMN;
     }
   },
   data(){
-    return{
-      rows:[],
-      profile:[],
-      cap: {},
-      name:"",
-      firstPlayed:"",
-      firstTeam: "",
-      lastPlayed:"",
-      lastTeam: "",
-      teams:[],
-      names:[],
+      return  {
+        rows:[],
+        profile:[],
+        cap: {},
+        name:"",
+        firstPlayed:"",
+        firstTeam: "",
+        lastPlayed:"",
+        lastTeam: "",
+        teams:[],
+        names:[],
 
-      tournaments:[],
-      leagues:[],
-      seasons:[],
+        tournaments:[],
+        leagues:[],
+        seasons:[],
 
-      sharing: {
-        url: 'https://news.vuejs.org/issues/180',
-        title: 'JAPAN RUGBY Player Stats - datairoro',
-        description: '',
-        quote: '',
-        hashtags: 'rugbyjp,ラグビー',
-        twitterUser: 'iroro_sports'
-      },
-      networks: [
-        { network: 'twitter', name: 'Twitter', icon: 'fab fah fa-lg fa-twitter', color: '#1da1f2' },
-        { network: 'facebook', name: 'Facebook', icon: 'fab fah fa-lg fa-facebook-f', color: '#1877f2' },
-        { network: 'line', name: 'Line', icon: 'fab fah fa-lg fa-line', color: '#00c300' },
-        { network: 'wordpress', name: 'Wordpress', icon: 'fab fah fa-lg fa-wordpress', color: '#21759b' },
-        { network: 'evernote', name: 'Evernote', icon: 'fab fah fa-lg fa-evernote', color: '#2dbe60' },
-        { network: 'email', name: 'Email', icon: 'far fah fa-lg fa-envelope', color: '#333333' },
-      ]
-
+        baseUrl:"https://datairoro.com/stats/#/rugby_player?tab=player",
+        sharing: {
+          url: 'https://news.vuejs.org/issues/180',
+          title: 'JAPAN RUGBY Player Stats - datairoro',
+          description: '',
+          quote: '',
+          hashtags: 'rugbyjp,ラグビー',
+          twitterUser: 'iroro_sports'
+        },
+        networks: [
+          { network: 'twitter', name: 'Twitter', icon: 'fab fah fa-lg fa-twitter', color: '#1da1f2' },
+          { network: 'facebook', name: 'Facebook', icon: 'fab fah fa-lg fa-facebook-f', color: '#1877f2' },
+          { network: 'line', name: 'Line', icon: 'fab fah fa-lg fa-line', color: '#00c300' },
+          { network: 'wordpress', name: 'Wordpress', icon: 'fab fah fa-lg fa-wordpress', color: '#21759b' },
+          { network: 'evernote', name: 'Evernote', icon: 'fab fah fa-lg fa-evernote', color: '#2dbe60' },
+          { network: 'email', name: 'Email', icon: 'far fah fa-lg fa-envelope', color: '#333333' },
+        ]
+      }
+  },
+  watch:{
+    playerID:{
+        handler:function(){
+          this.initialize();
+        }
     }
   },
   mounted(){
-    this.name = this.$route.query.playerName;
-    this.getData(this.$route.query.playerID);
-    this.sharing.title = `JAPAN RUGBY Player Stats(${this.name}) - datairoro`;
-    this.sharing.description = `日本ラグビー通算選手成績（${this.name}） - datairoro`
-    this.sharing.quote = `日本ラグビー通算選手成績（${this.name}） - datairoro`
-    this.sharing.url = location.href
+    this.initialize();
   },
   methods:{
+    initialize(){
+      this.name = this.playerName;
+      this.getData(this.playerID);
+      this.sharing.title = `JAPAN RUGBY Player Stats(${this.name}) - datairoro`;
+      this.sharing.description = `日本ラグビー通算選手成績（${this.name}） - datairoro`
+      this.sharing.quote = `日本ラグビー通算選手成績（${this.name}） - datairoro`
+      this.sharing.url = `${this.baseUrl}&playerID=${this.playerID}&playername=${this.playerName}`
+
+    },
+    getRowColor(row){
+      return row === '合計' ? "#e6e6e6" : "#ffffff"; 
+    },
     async getData(playerId){
       [this.profile, this.cap, this.rows] = await DatabaseAccess.getPlayerStatisticsData(playerId);
 
@@ -176,7 +203,7 @@ export default {
       this.calcSeason();
     },
     createTournamentObject(name, obj){
-      const sort = ["TL", "TLC", "TL/TLC", "TCL", "TL/TCL", "Div1", "Div2", "Div3", "Div1/2", "Div2/3","日本選手権W"];
+      const sort = ["TL", "TLC", "TL/TLC", "TCL", "TL/TCL", "Div1", "Div2", "Div3", "Div1/2", "Div2/3","日本選手権"];
       
       let playedCnt = 0;
       let scoreCnt = 0;
@@ -190,7 +217,7 @@ export default {
           this.tournaments.push({
             typename: name,
             div: key,
-            played: obj[key][RUGBY_PLAYER_COLUMN[RUGBY_PLAYER_COLUMN.PLAYED]],
+            played: obj[key][RUGBY_PLAYER_COLUMN.PLAYED],
             score: obj[key][RUGBY_PLAYER_COLUMN.SCORE],
             try: obj[key][RUGBY_PLAYER_COLUMN.TRY],
             goal: obj[key][RUGBY_PLAYER_COLUMN.GOAL],
@@ -209,7 +236,7 @@ export default {
 
       this.tournaments.push({
         typename: name,
-        div: "計",
+        div: "合計",
         played: playedCnt,
         score: scoreCnt,
         try: tryCnt,
@@ -282,7 +309,7 @@ export default {
 
       this.leagues.push({
         typename: name,
-        div: "計",
+        div: "合計",
         played: playedCnt,
         score: scoreCnt,
         try: tryCnt,
@@ -357,6 +384,7 @@ export default {
                 this.seasons.push({
                   season: tmpSeason,
                   section: tmpSection,
+                  division: tmpDivision,
                   team: tmpTeam,
                   played: playedCnt,
                   score: scoreCnt,
@@ -384,6 +412,7 @@ export default {
               this.seasons.push({
                   season: tmpSeason,
                   section: tmpSection,
+                  division: tmpDivision,
                   team: tmpTeam,
                   played: playedCnt,
                   score: scoreCnt,
@@ -412,6 +441,7 @@ export default {
             this.seasons.push({
                   season: tmpSeason,
                   section: tmpSection,
+                  division: tmpDivision,
                   team: tmpTeam,
                   played: playedCnt,
                   score: scoreCnt,
@@ -442,6 +472,7 @@ export default {
             season: tmpSeason,
             section: tmpSection,
             team: tmpTeam,
+            division: tmpDivision,
             played: playedCnt,
             score: scoreCnt,
             try: tryCnt,
@@ -482,6 +513,7 @@ export default {
       this.seasons.push({
         season: tmpSeason,
         section: tmpSection,
+        division: tmpDivision,
         team: tmpTeam,
         played: playedCnt,
         score: scoreCnt,
@@ -493,6 +525,7 @@ export default {
       this.seasons.push({
         season: tmpSeason,
         section: "合計",
+        division: "",
         team: "",
         played: playedSeasonCnt,
         score: scoreSeasonCnt,
